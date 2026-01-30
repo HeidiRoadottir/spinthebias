@@ -460,10 +460,136 @@
 :root.light .gen-log{
   background: rgba(0,0,0,.02);
 }
+/* === Modal (welcome popup) === */
+.modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 99999;
+}
+
+.modal-backdrop.open{ display: flex; }
+
+.modal{
+  width: min(720px, 96vw);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--card), var(--card-2));
+  box-shadow: 0 30px 90px rgba(0,0,0,.45);
+  overflow: hidden;
+}
+
+.modal-header{
+  padding: 16px 18px;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-title{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+.modal-title h3{
+  margin: 0;
+  font-size: 16px;
+}
+.modal-title .chip{
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  color: var(--muted);
+}
+:root.light .modal-title .chip{ background: rgba(0,0,0,.03); }
+
+.modal-close{
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.modal-close:hover{ background: rgba(255,255,255,.08); }
+
+.modal-body{
+  padding: 16px 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.modal-grid{
+  display:grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 720px){
+  .modal-grid{ grid-template-columns: 1fr; }
+}
+
+.modal-block{
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  padding: 12px;
+}
+:root.light .modal-block{ background: rgba(0,0,0,.03); }
+
+.modal-block h4{
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .2px;
+  color: var(--muted);
+}
+.modal-block p{
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.modal-footer{
+  padding: 14px 18px;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.modal-footer label{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  user-select:none;
+}
+
+kbd{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+  font-size: 12px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+}
+:root.light kbd{ background: rgba(0,0,0,.03); }
 
   </style>
 </head>
-<body>
+<body> 
   <header class="topbar">
     <div class="brand">
       <div class="logo" aria-hidden="true">🎡</div>
@@ -564,6 +690,76 @@
     </section>
   </main>
 
+<!-- Welcome / About Modal -->
+<div id="welcomeBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="modal" role="document">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span aria-hidden="true">🎡</span>
+        <h3 id="welcomeTitle">Welcome to Spin the Bias</h3>
+        <span class="chip">How to read this</span>
+      </div>
+      <button id="welcomeCloseX" class="modal-close" type="button" aria-label="Close">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-block">
+        <h4>The point</h4>
+        <p>
+          This wheel is meant to feel random — like “bad luck” — but the outcomes represent repeatable patterns
+          in data, assumptions, and routines. The cheerful tone is intentional: serious consequences often get normalized.
+        </p>
+      </div>
+
+      <div class="modal-grid">
+        <div class="modal-block">
+          <h4>System damage</h4>
+          <p>
+            A playful score for cumulative harm. Each spin adds damage based on severity —
+            because repeated small biases build large consequences over time.
+          </p>
+        </div>
+
+        <div class="modal-block">
+          <h4>Trust meter</h4>
+          <p>
+            A rough indicator of confidence in the system. As damage rises, trust drops —
+            reflecting how people lose faith when they’re repeatedly dismissed or misserved.
+          </p>
+        </div>
+
+        <div class="modal-block">
+          <h4>Understanding the outcome</h4>
+          <p>
+            Each outcome is structured as: <strong>why it happens</strong> → <strong>what goes wrong</strong> →
+            <strong>real-world impact</strong> → <strong>what would improve it</strong>.
+          </p>
+        </div>
+
+        <div class="modal-block">
+          <h4>How to use</h4>
+          <p>
+            Spin several times. Notice how “random” starts to look systematic.
+            Tip: Press <kbd>Space</kbd> or <kbd>Enter</kbd> to spin.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <label>
+        <input id="dontShowAgain" type="checkbox" />
+        Don’t show this again
+      </label>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="welcomeSpinBtn" class="btn btn-primary" type="button">Got it — spin 🎉</button>
+        <button id="welcomeCloseBtn" class="btn btn-ghost" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  
   <script>
     /* Spin the Bias — single-file version
        - Canvas wheel
@@ -1179,6 +1375,62 @@ function stopGeneratingUI(){
         }
       }
     });
+// ===== Welcome Modal =====
+const welcomeBackdrop = document.getElementById("welcomeBackdrop");
+const welcomeCloseX = document.getElementById("welcomeCloseX");
+const welcomeCloseBtn = document.getElementById("welcomeCloseBtn");
+const welcomeSpinBtn = document.getElementById("welcomeSpinBtn");
+const dontShowAgain = document.getElementById("dontShowAgain");
+
+function openWelcomeModal(force = false){
+  // If user chose "don't show again", only open when forced (About button)
+  const suppressed = localStorage.getItem("stb_hide_welcome") === "1";
+  if (suppressed && !force) return;
+
+  welcomeBackdrop.classList.add("open");
+
+  // Basic focus to close button for accessibility
+  setTimeout(() => welcomeCloseX.focus(), 0);
+}
+
+function closeWelcomeModal(){
+  welcomeBackdrop.classList.remove("open");
+
+  if (dontShowAgain.checked){
+    localStorage.setItem("stb_hide_welcome", "1");
+  }
+}
+
+// Close actions
+welcomeCloseX.addEventListener("click", closeWelcomeModal);
+welcomeCloseBtn.addEventListener("click", closeWelcomeModal);
+
+// Click outside modal closes
+welcomeBackdrop.addEventListener("click", (e) => {
+  if (e.target === welcomeBackdrop) closeWelcomeModal();
+});
+
+// ESC closes
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && welcomeBackdrop.classList.contains("open")) {
+    closeWelcomeModal();
+  }
+});
+
+// Spin button in modal closes and spins
+welcomeSpinBtn.addEventListener("click", () => {
+  closeWelcomeModal();
+  // tiny delay so UI updates feel clean
+  setTimeout(() => spinOnce(), 80);
+});
+
+// Hook About button to open modal
+aboutBtn.addEventListener("click", () => openWelcomeModal(true));
+    
+// Show on first load (unless suppressed)
+window.addEventListener("load", () => {
+  openWelcomeModal(false);
+});
 
     // ===== Init =====
     angle = Math.random() * Math.PI * 2;
