@@ -1,0 +1,76 @@
+{
+  "segments": [
+    {
+      "label": "Clinical trials",
+      "tag": "Research design",
+      "severity": 18,
+      "why": "Eligibility criteria, cost, and risk assumptions often default to male bodies or exclude women of childbearing age.",
+      "what_goes_wrong": "Dosage, side effects, and effectiveness become less reliable for women.",
+      "real_world": "A medication that seems “safe” can produce unexpected side effects or weaker efficacy in underrepresented groups.",
+      "what_to_fix": "Recruitment targets, sex-disaggregated reporting, and trial designs that treat hormonal variation as normal—not noise."
+    },
+    {
+      "label": "Pain scales",
+      "tag": "Clinical interaction",
+      "severity": 16,
+      "why": "Women’s pain is more likely to be downplayed or reframed as stress/anxiety.",
+      "what_goes_wrong": "Symptoms get dismissed, delayed, or misclassified.",
+      "real_world": "Longer diagnostic journeys and lower trust in care systems.",
+      "what_to_fix": "Structured symptom capture, clinician training, and protocols that treat subjective pain reports as valid data."
+    },
+    {
+      "label": "Emergency symptoms",
+      "tag": "Acute care",
+      "severity": 17,
+      "why": "Textbook symptom profiles often reflect male patterns as ‘typical’.",
+      "what_goes_wrong": "Non-typical presentations are missed or triaged lower.",
+      "real_world": "Higher risk of delayed care for conditions like heart events.",
+      "what_to_fix": "Update guidelines, train for variation, and build triage tools using diverse symptom profiles."
+    },
+    {
+      "label": "AI diagnosis",
+      "tag": "Algorithms",
+      "severity": 19,
+      "why": "Models learn what’s in the data. If women are underrepresented or labeled differently, bias becomes ‘accuracy’.",
+      "what_goes_wrong": "Confident predictions that are wrong for certain groups.",
+      "real_world": "Automation can scale inequity quietly and fast.",
+      "what_to_fix": "Bias audits, balanced datasets, subgroup evaluation, and transparent model reporting."
+    },
+    {
+      "label": "Drug dosage",
+      "tag": "Pharmacology",
+      "severity": 18,
+      "why": "Metabolism differences and hormonal cycles are under-accounted for in standards.",
+      "what_goes_wrong": "Over- or under-dosing and unpredictable side effects.",
+      "real_world": "“Standard dose” becomes a gamble.",
+      "what_to_fix": "Sex-specific dosing studies and stronger monitoring/post-market reporting."
+    },
+    {
+      "label": "Endometriosis",
+      "tag": "Chronic conditions",
+      "severity": 20,
+      "why": "Normalization of pain + slow research investment leads to long delays.",
+      "what_goes_wrong": "Symptoms are reframed as ‘normal periods’ or stress.",
+      "real_world": "Years to diagnosis, reduced quality of life, and mental health burden.",
+      "what_to_fix": "Faster referral pathways, research funding, and better symptom screening tools."
+    },
+    {
+      "label": "Mental health",
+      "tag": "Interpretation bias",
+      "severity": 15,
+      "why": "When symptoms are unclear, clinicians may default to psychological explanations—especially for women.",
+      "what_goes_wrong": "Physical conditions become invisible behind mental health labels.",
+      "real_world": "Patients stop seeking care or feel unheard.",
+      "what_to_fix": "Dual-track assessment: investigate physical causes alongside mental wellbeing, not instead of it."
+    },
+    {
+      "label": "Wearable data",
+      "tag": "Measurement",
+      "severity": 14,
+      "why": "Sensors and models often assume ‘default’ physiology and activity patterns.",
+      "what_goes_wrong": "Tracking becomes noisier or misleading for some bodies.",
+      "real_world": "False reassurance or unnecessary alarms.",
+      "what_to_fix": "Inclusive calibration, validation studies, and user controls for context (cycle, pregnancy, etc.)."
+    }
+  ]
+}
