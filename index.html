@@ -5,7 +5,335 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Spin the Bias</title>
   <meta name="description" content="A playful wheel-of-fortune style interactive about systemic bias in healthcare." />
-  <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    :root{
+      --bg: #0b0c10;
+      --card: rgba(255,255,255,.08);
+      --card-2: rgba(255,255,255,.06);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --border: rgba(255,255,255,.12);
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+
+      --primary: #ffffff;
+      --primaryText: #0b0c10;
+
+      --radius: 22px;
+      --radius2: 16px;
+      --pad: 18px;
+    }
+
+    :root.light{
+      --bg: #f6f7fb;
+      --card: rgba(0,0,0,.04);
+      --card-2: rgba(0,0,0,.03);
+      --text: rgba(0,0,0,.88);
+      --muted: rgba(0,0,0,.62);
+      --border: rgba(0,0,0,.10);
+      --shadow: 0 20px 60px rgba(0,0,0,.10);
+
+      --primary: #111827;
+      --primaryText: #ffffff;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(255,255,255,.10), transparent 55%),
+                  radial-gradient(900px 600px at 85% 25%, rgba(255,255,255,.08), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .topbar{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 22px 18px 10px;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand{ display:flex; gap: 12px; align-items:center; }
+    .logo{
+      width: 44px; height: 44px;
+      display:grid; place-items:center;
+      border-radius: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      font-size: 20px;
+    }
+    h1{
+      font-size: 20px;
+      margin: 0;
+      letter-spacing: .2px;
+    }
+    .subtitle{
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .topbar-actions{ display:flex; gap: 10px; align-items:center; }
+
+    .layout{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 10px 18px 40px;
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    .wheel-card, .result-card{
+      background: linear-gradient(180deg, var(--card), var(--card-2));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--pad);
+    }
+
+    .wheel-wrap{
+      position: relative;
+      display:grid;
+      place-items:center;
+      padding: 12px;
+    }
+
+    canvas{
+      width: min(560px, 85vw);
+      height: auto;
+      max-width: 560px;
+      border-radius: 50%;
+      background: rgba(0,0,0,.12);
+      border: 1px solid var(--border);
+    }
+
+    .pointer{
+      position:absolute;
+      top: 10px;
+      width: 0; height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 26px solid rgba(255,255,255,.92);
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.25));
+    }
+    :root.light .pointer{
+      border-bottom-color: rgba(17,24,39,.9);
+    }
+
+    .controls{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items:center;
+      margin-top: 10px;
+    }
+
+    .hint{
+      font-size: 12px;
+      color: var(--muted);
+      text-align:center;
+      max-width: 46ch;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .stat{
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      padding: 12px;
+    }
+    :root.light .stat{
+      background: rgba(0,0,0,.03);
+    }
+    .stat-label{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .stat-value{
+      font-size: 20px;
+      margin-top: 4px;
+      letter-spacing: .2px;
+    }
+
+    .toggles{
+      margin-top: 14px;
+      display:flex;
+      gap: 14px;
+      justify-content:center;
+      flex-wrap: wrap;
+    }
+    .toggle{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      font-size: 13px;
+      color: var(--muted);
+      user-select:none;
+    }
+    .toggle input{ accent-color: var(--primary); }
+
+    .btn{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 600;
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      text-decoration:none;
+      transition: transform .06s ease, background .12s ease, opacity .12s ease;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn[disabled]{ opacity: .55; cursor:not-allowed; }
+
+    .btn-primary{
+      background: var(--primary);
+      color: var(--primaryText);
+      border-color: rgba(0,0,0,.12);
+    }
+    .btn-primary:hover{ filter: brightness(1.03); }
+
+    .btn-secondary{
+      background: rgba(255,255,255,.14);
+    }
+    :root.light .btn-secondary{
+      background: rgba(17,24,39,.10);
+    }
+
+    .btn-ghost{
+      background: transparent;
+    }
+    .btn-icon{ font-size: 16px; }
+
+    .result-header h2{
+      margin: 0;
+      font-size: 18px;
+    }
+    .result-subtitle{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .result-body{
+      margin-top: 14px;
+      min-height: 320px;
+      border-radius: var(--radius2);
+      border: 1px dashed var(--border);
+      padding: 14px;
+      background: rgba(255,255,255,.03);
+    }
+    :root.light .result-body{
+      background: rgba(0,0,0,.02);
+    }
+
+    .empty-state{
+      height: 100%;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      gap: 10px;
+      padding: 30px 12px;
+      color: var(--muted);
+    }
+    .empty-emoji{ font-size: 34px; }
+
+    .outcome{
+      display:flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .pillrow{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      font-size: 12px;
+      color: var(--muted);
+    }
+    :root.light .pill{ background: rgba(0,0,0,.03); }
+
+    .block{
+      border-radius: var(--radius2);
+      border: 1px solid var(--border);
+      padding: 12px;
+      background: rgba(255,255,255,.04);
+    }
+    :root.light .block{ background: rgba(0,0,0,.03); }
+
+    .block h3{
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .2px;
+      text-transform: uppercase;
+    }
+    .block p{
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .result-actions{
+      margin-top: 14px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .footer-note{
+      margin-top: 14px;
+      color: var(--muted);
+    }
+
+    /* Tiny confetti bursts (no canvas confetti library) */
+    .confetti{
+      position: fixed;
+      top: 0;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateX(-50%) translateY(0) rotate(0deg);
+      animation: pop 900ms ease-out forwards;
+      z-index: 9999;
+    }
+    @keyframes pop{
+      0% { opacity: 0; transform: translateX(-50%) translateY(0) rotate(0deg) scale(0.6); }
+      10% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(calc(-50% + var(--dx))) translateY(var(--dy)) rotate(var(--rot)) scale(1); }
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -19,7 +347,7 @@
 
     <div class="topbar-actions">
       <button id="resetBtn" class="btn btn-ghost" type="button">Reset</button>
-      <a class="btn btn-ghost" href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+      <button id="aboutBtn" class="btn btn-ghost" type="button">About</button>
     </div>
   </header>
 
@@ -61,8 +389,16 @@
           <span>Reduced motion</span>
         </label>
         <label class="toggle">
-          <input id="darkToggle" type="checkbox" />
+          <input id="darkToggle" type="checkbox" checked />
           <span>Dark mode</span>
+        </label>
+        <label class="toggle">
+          <input id="confettiToggle" type="checkbox" checked />
+          <span>Confetti</span>
+        </label>
+        <label class="toggle">
+          <input id="soundToggle" type="checkbox" checked />
+          <span>Sound</span>
         </label>
       </div>
     </section>
@@ -93,15 +429,562 @@
       </div>
 
       <footer class="footer-note">
-        <small>
+        <small id="footerSmall">
           Tone: playful. Topic: serious. This is a prototype meant to spark reflection.
         </small>
       </footer>
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script>
+    /* Spin the Bias — single-file version
+       - Canvas wheel
+       - Embedded data
+       - Scoreboard
+       - Reduced-motion + dark mode
+       - Optional confetti + sound
+    */
+
+    // ===== Embedded scenarios =====
+    const DATA = {
+      segments: [
+        {
+          label: "Clinical trials",
+          tag: "Research design",
+          severity: 18,
+          why: "Eligibility criteria, cost, and risk assumptions often default to male bodies or exclude women of childbearing age.",
+          what_goes_wrong: "Dosage, side effects, and effectiveness become less reliable for women.",
+          real_world: "A medication that seems “safe” can produce unexpected side effects or weaker efficacy in underrepresented groups.",
+          what_to_fix: "Recruitment targets, sex-disaggregated reporting, and trial designs that treat hormonal variation as normal—not noise."
+        },
+        {
+          label: "Pain scales",
+          tag: "Clinical interaction",
+          severity: 16,
+          why: "Women’s pain is more likely to be downplayed or reframed as stress/anxiety.",
+          what_goes_wrong: "Symptoms get dismissed, delayed, or misclassified.",
+          real_world: "Longer diagnostic journeys and lower trust in care systems.",
+          what_to_fix: "Structured symptom capture, clinician training, and protocols that treat subjective pain reports as valid data."
+        },
+        {
+          label: "Emergency symptoms",
+          tag: "Acute care",
+          severity: 17,
+          why: "Textbook symptom profiles often reflect male patterns as ‘typical’.",
+          what_goes_wrong: "Non-typical presentations are missed or triaged lower.",
+          real_world: "Higher risk of delayed care for conditions like heart events.",
+          what_to_fix: "Update guidelines, train for variation, and build triage tools using diverse symptom profiles."
+        },
+        {
+          label: "AI diagnosis",
+          tag: "Algorithms",
+          severity: 19,
+          why: "Models learn what’s in the data. If women are underrepresented or labeled differently, bias becomes ‘accuracy’.",
+          what_goes_wrong: "Confident predictions that are wrong for certain groups.",
+          real_world: "Automation can scale inequity quietly and fast.",
+          what_to_fix: "Bias audits, balanced datasets, subgroup evaluation, and transparent model reporting."
+        },
+        {
+          label: "Drug dosage",
+          tag: "Pharmacology",
+          severity: 18,
+          why: "Metabolism differences and hormonal cycles are under-accounted for in standards.",
+          what_goes_wrong: "Over- or under-dosing and unpredictable side effects.",
+          real_world: "“Standard dose” becomes a gamble.",
+          what_to_fix: "Sex-specific dosing studies and stronger monitoring/post-market reporting."
+        },
+        {
+          label: "Endometriosis",
+          tag: "Chronic conditions",
+          severity: 20,
+          why: "Normalization of pain + slow research investment leads to long delays.",
+          what_goes_wrong: "Symptoms are reframed as ‘normal periods’ or stress.",
+          real_world: "Years to diagnosis, reduced quality of life, and mental health burden.",
+          what_to_fix: "Faster referral pathways, research funding, and better symptom screening tools."
+        },
+        {
+          label: "Mental health",
+          tag: "Interpretation bias",
+          severity: 15,
+          why: "When symptoms are unclear, clinicians may default to psychological explanations—especially for women.",
+          what_goes_wrong: "Physical conditions become invisible behind mental health labels.",
+          real_world: "Patients stop seeking care or feel unheard.",
+          what_to_fix: "Dual-track assessment: investigate physical causes alongside mental wellbeing, not instead of it."
+        },
+        {
+          label: "Wearable data",
+          tag: "Measurement",
+          severity: 14,
+          why: "Sensors and models often assume ‘default’ physiology and activity patterns.",
+          what_goes_wrong: "Tracking becomes noisier or misleading for some bodies.",
+          real_world: "False reassurance or unnecessary alarms.",
+          what_to_fix: "Inclusive calibration, validation studies, and user controls for context (cycle, pregnancy, etc.)."
+        }
+      ]
+    };
+
+    // ===== DOM =====
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+
+    const spinBtn = document.getElementById("spinBtn");
+    const spinAgainBtn = document.getElementById("spinAgainBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const aboutBtn = document.getElementById("aboutBtn");
+
+    const spinsEl = document.getElementById("spins");
+    const damageEl = document.getElementById("damage");
+    const trustEl = document.getElementById("trust");
+
+    const resultTitle = document.getElementById("resultTitle");
+    const resultSubtitle = document.getElementById("resultSubtitle");
+    const resultBody = document.getElementById("resultBody");
+    const footerSmall = document.getElementById("footerSmall");
+
+    const reducedMotionToggle = document.getElementById("reducedMotionToggle");
+    const darkToggle = document.getElementById("darkToggle");
+    const confettiToggle = document.getElementById("confettiToggle");
+    const soundToggle = document.getElementById("soundToggle");
+
+    // ===== State =====
+    let segments = DATA.segments.slice();
+    let angle = 0;
+    let isSpinning = false;
+
+    let spins = 0;
+    let damage = 0;
+
+    let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    reducedMotionToggle.checked = reducedMotion;
+
+    // ===== Theme persistence =====
+    function setThemeFromStorage() {
+      const saved = localStorage.getItem("stb_theme");
+      if (saved === "light") {
+        document.documentElement.classList.add("light");
+        darkToggle.checked = false;
+      } else {
+        document.documentElement.classList.remove("light");
+        darkToggle.checked = true;
+      }
+    }
+    setThemeFromStorage();
+
+    darkToggle.addEventListener("change", () => {
+      if (darkToggle.checked) {
+        document.documentElement.classList.remove("light");
+        localStorage.setItem("stb_theme", "dark");
+      } else {
+        document.documentElement.classList.add("light");
+        localStorage.setItem("stb_theme", "light");
+      }
+      drawWheel();
+    });
+
+    reducedMotionToggle.addEventListener("change", () => {
+      reducedMotion = reducedMotionToggle.checked;
+    });
+
+    // ===== Helpers =====
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function updateStats(){
+      spinsEl.textContent = String(spins);
+      damageEl.textContent = String(damage);
+      const trust = clamp(100 - Math.floor(damage * 0.8), 0, 100);
+      trustEl.textContent = `${trust}%`;
+
+      if (spins >= 5) footerSmall.textContent = "Chaos mode: after enough spins, “random” starts looking like a system.";
+      else footerSmall.textContent = "Tone: playful. Topic: serious. This is a prototype meant to spark reflection.";
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // Deterministic-ish hue from label
+    function hashHue(str){
+      let h = 0;
+      for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
+      return h % 360;
+    }
+
+    // ===== Wheel drawing =====
+    function drawWheel(){
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = Math.min(cx, cy) - 12;
+
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // background ring
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 6, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fill();
+
+      if (!segments.length){
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.font = "700 18px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("No segments", cx, cy);
+        return;
+      }
+
+      const n = segments.length;
+      const arc = (Math.PI * 2) / n;
+      const isLight = document.documentElement.classList.contains("light");
+
+      for (let i = 0; i < n; i++){
+        const seg = segments[i];
+        const start = angle + i * arc;
+        const end = start + arc;
+
+        const hue = hashHue(seg.label);
+
+        // segment fill
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = isLight
+          ? `hsla(${hue}, 70%, 55%, 0.85)`
+          : `hsla(${hue}, 75%, 60%, 0.28)`;
+        ctx.fill();
+
+        // border
+        ctx.strokeStyle = isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.12)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // label
+        ctx.save();
+        const mid = (start + end) / 2;
+        ctx.translate(cx, cy);
+        ctx.rotate(mid);
+        ctx.translate(radius * 0.62, 0);
+        ctx.rotate(Math.PI / 2);
+
+        ctx.fillStyle = isLight ? "rgba(0,0,0,0.82)" : "rgba(255,255,255,0.90)";
+        ctx.font = "700 14px system-ui";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        const label = seg.label.length > 18 ? seg.label.slice(0, 17) + "…" : seg.label;
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+      }
+
+      // center cap
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 0.18, 0, Math.PI * 2);
+      ctx.fillStyle = isLight ? "rgba(17,24,39,0.9)" : "rgba(255,255,255,0.85)";
+      ctx.fill();
+
+      ctx.fillStyle = isLight ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.85)";
+      ctx.font = "800 15px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("BIAS", cx, cy);
+    }
+
+    function getSelectedIndex(){
+      const n = segments.length;
+      const arc = (Math.PI * 2) / n;
+
+      // pointer at top: reference = -pi/2
+      const normalized = (-(angle) + Math.PI / 2) % (Math.PI * 2);
+      const a = (normalized + Math.PI * 2) % (Math.PI * 2);
+      const idx = Math.floor(a / arc);
+      return clamp(idx, 0, n - 1);
+    }
+
+    // ===== Outcome rendering =====
+    function renderOutcome(seg){
+      resultTitle.textContent = "Outcome";
+      resultSubtitle.textContent = `Landed on: ${seg.label}`;
+
+      const html = `
+        <div class="outcome">
+          <div class="pillrow">
+            <div class="pill">Category: ${escapeHtml(seg.tag)}</div>
+            <div class="pill">Severity: ${escapeHtml(String(seg.severity))}/20</div>
+          </div>
+
+          <div class="block">
+            <h3>Why it happens</h3>
+            <p>${escapeHtml(seg.why)}</p>
+          </div>
+
+          <div class="block">
+            <h3>What goes wrong</h3>
+            <p>${escapeHtml(seg.what_goes_wrong)}</p>
+          </div>
+
+          <div class="block">
+            <h3>Real-world impact</h3>
+            <p>${escapeHtml(seg.real_world)}</p>
+          </div>
+
+          <div class="block">
+            <h3>What would improve it</h3>
+            <p>${escapeHtml(seg.what_to_fix)}</p>
+          </div>
+
+          <div class="block">
+            <h3>Game show message</h3>
+            <p><strong>Congratulations!</strong> The system treated “default human” as male again. 🎉</p>
+          </div>
+        </div>
+      `;
+
+      resultBody.innerHTML = html;
+      spinAgainBtn.disabled = false;
+      copyBtn.disabled = false;
+    }
+
+    // ===== Copy =====
+    function copyOutcome(){
+      const text = resultBody.innerText.trim();
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => (copyBtn.textContent = "Copy outcome"), 900);
+      }).catch(() => {
+        copyBtn.textContent = "Copy failed";
+        setTimeout(() => (copyBtn.textContent = "Copy outcome"), 900);
+      });
+    }
+
+    // ===== Confetti =====
+    function confettiBurst(){
+      if (!confettiToggle.checked) return;
+
+      // 18 small squares
+      for (let i = 0; i < 18; i++){
+        const d = document.createElement("div");
+        d.className = "confetti";
+        const dx = (Math.random() * 300 - 150).toFixed(0) + "px";
+        const dy = (Math.random() * 320 + 120).toFixed(0) + "px";
+        const rot = (Math.random() * 520 - 260).toFixed(0) + "deg";
+        const hue = Math.floor(Math.random() * 360);
+
+        d.style.setProperty("--dx", dx);
+        d.style.setProperty("--dy", dy);
+        d.style.setProperty("--rot", rot);
+        d.style.background = `hsl(${hue} 80% 60%)`;
+
+        // start near top center
+        d.style.left = (window.innerWidth / 2) + "px";
+        d.style.top = "10px";
+        d.style.opacity = "1";
+
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), 950);
+      }
+    }
+
+    // ===== Sound (tiny synth beep) =====
+    let audioCtx = null;
+
+    function ensureAudio(){
+      if (!soundToggle.checked) return null;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+
+    function beep({type="sine", freq=440, duration=0.08, gain=0.05} = {}){
+      const ctx = ensureAudio();
+      if (!ctx) return;
+
+      // On some browsers audio starts suspended until user gesture; this is called from clicks.
+      if (ctx.state === "suspended") ctx.resume().catch(()=>{});
+
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = gain;
+
+      o.connect(g);
+      g.connect(ctx.destination);
+
+      const t0 = ctx.currentTime;
+      o.start(t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+      o.stop(t0 + duration);
+    }
+
+    function spinSoundTick(){
+      // quick random ticks while spinning
+      if (!soundToggle.checked) return;
+      beep({type:"square", freq: 220 + Math.random()*280, duration: 0.03, gain: 0.03});
+    }
+
+    function winSound(){
+      if (!soundToggle.checked) return;
+      beep({type:"sine", freq: 660, duration: 0.06, gain: 0.06});
+      setTimeout(() => beep({type:"sine", freq: 880, duration: 0.08, gain: 0.06}), 70);
+    }
+
+    // ===== Spin logic =====
+    function spinOnce(){
+      if (isSpinning || !segments.length) return;
+      isSpinning = true;
+
+      spinBtn.disabled = true;
+      spinAgainBtn.disabled = true;
+      copyBtn.disabled = true;
+
+      const extraSpins = reducedMotion ? 1 : 6;
+      const rand = Math.random();
+      const target = angle + (Math.PI * 2) * extraSpins + rand * Math.PI * 2;
+
+      if (reducedMotion){
+        angle = target;
+        drawWheel();
+        finalizeSpin();
+        return;
+      }
+
+      const start = performance.now();
+      const duration = 2600;
+
+      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+      let lastTick = 0;
+
+      function frame(now){
+        const t = clamp((now - start) / duration, 0, 1);
+        const eased = easeOutCubic(t);
+
+        // Smoothly approach target without overshooting
+        angle = angle + (target - angle) * eased;
+        drawWheel();
+
+        // tick sound every ~80ms early on
+        if (soundToggle.checked && now - lastTick > 80 && t < 0.9){
+          spinSoundTick();
+          lastTick = now;
+        }
+
+        if (t < 1) requestAnimationFrame(frame);
+        else {
+          angle = target;
+          drawWheel();
+          finalizeSpin();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function finalizeSpin(){
+      const idx = getSelectedIndex();
+      const seg = segments[idx];
+
+      spins += 1;
+      damage += Math.max(1, Math.round(seg.severity / 2));
+
+      updateStats();
+      renderOutcome(seg);
+
+      confettiBurst();
+      winSound();
+
+      spinBtn.disabled = false;
+      isSpinning = false;
+    }
+
+    function resetAll(){
+      spins = 0;
+      damage = 0;
+      updateStats();
+
+      resultTitle.textContent = "Outcome";
+      resultSubtitle.textContent = "Spin the wheel to generate a scenario.";
+      resultBody.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-emoji" aria-hidden="true">🌀</div>
+          <p>
+            Click <strong>SPIN THE BIAS</strong> to land on a category and see how bias shows up in systems,
+            data, and decisions.
+          </p>
+        </div>
+      `;
+      spinAgainBtn.disabled = true;
+      copyBtn.disabled = true;
+
+      angle = Math.random() * Math.PI * 2;
+      drawWheel();
+    }
+
+    // ===== About =====
+    function showAbout(){
+      resultTitle.textContent = "About";
+      resultSubtitle.textContent = "What is this wheel doing, exactly?";
+      resultBody.innerHTML = `
+        <div class="outcome">
+          <div class="block">
+            <h3>Concept</h3>
+            <p>
+              The wheel feels random — like “bad luck” — but the outcomes are produced by repeatable patterns
+              in data, assumptions, and institutional routines. The game-show tone is intentional: it mirrors
+              how serious consequences can be framed as normal or inevitable.
+            </p>
+          </div>
+          <div class="block">
+            <h3>How to use</h3>
+            <p>
+              Spin multiple times. Watch the trust meter drop. Notice how “one-off” outcomes start to look
+              like a system.
+            </p>
+          </div>
+          <div class="block">
+            <h3>Make it yours</h3>
+            <p>
+              You can edit the scenario list directly in this file (search for <strong>DATA</strong>).
+              Add categories, rewrite text, adjust severity.
+            </p>
+          </div>
+        </div>
+      `;
+      spinAgainBtn.disabled = false;
+      copyBtn.disabled = false;
+    }
+
+    // ===== Events =====
+    spinBtn.addEventListener("click", spinOnce);
+    spinAgainBtn.addEventListener("click", spinOnce);
+    copyBtn.addEventListener("click", copyOutcome);
+    resetBtn.addEventListener("click", resetAll);
+    aboutBtn.addEventListener("click", showAbout);
+
+    // Keyboard spin shortcut
+    document.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !isSpinning) {
+        const active = document.activeElement?.tagName?.toLowerCase();
+        if (active === "body" || active === "canvas") {
+          e.preventDefault();
+          spinOnce();
+        }
+      }
+    });
+
+    // ===== Init =====
+    angle = Math.random() * Math.PI * 2;
+    drawWheel();
+    updateStats();
+  </script>
 </body>
 </html>
-
-
