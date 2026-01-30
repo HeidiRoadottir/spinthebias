@@ -1040,103 +1040,103 @@ function fitFontSize(ctx, text, maxWidth, startSize = 14, minSize = 10, weight =
 }
 
     
-    // ===== Wheel drawing =====
-    function drawWheel(){
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const radius = Math.min(cx, cy) - 12;
+   function drawWheel(){
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const radius = Math.min(cx, cy) - 12;
 
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // background ring
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius + 6, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,0,0,0.08)";
-      ctx.fill();
+  // background ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius + 6, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.fill();
 
-      if (!segments.length){
-        ctx.beginPath();
-        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
-        ctx.fill();
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
-        ctx.font = "700 18px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("No segments", cx, cy);
-        return;
-      }
+  if (!segments.length){
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255,0.06)";
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.font = "700 18px system-ui";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("No segments", cx, cy);
+    return;
+  }
 
-      const n = segments.length;
-      const arc = (Math.PI * 2) / n;
-      const isLight = document.documentElement.classList.contains("light");
+  const n = segments.length;
+  const arc = (Math.PI * 2) / n;
+  const isLight = document.documentElement.classList.contains("light");
 
-      for (let i = 0; i < n; i++){
-        const seg = segments[i];
-        const start = angle + i * arc;
-        const end = start + arc;
+  for (let i = 0; i < n; i++){
+    const seg = segments[i];
+    const start = angle + i * arc;
+    const end = start + arc;
 
-        const hue = hashHue(seg.label);
+    const hue = hashHue(seg.label);
 
-        // segment fill
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, radius, start, end);
-        ctx.closePath();
-        ctx.fillStyle = isLight
-          ? `hsla(${hue}, 70%, 55%, 0.85)`
-          : `hsla(${hue}, 75%, 60%, 0.28)`;
-        ctx.fill();
+    // segment fill
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, radius, start, end);
+    ctx.closePath();
+    ctx.fillStyle = isLight
+      ? `hsla(${hue}, 70%, 55%, 0.85)`
+      : `hsla(${hue}, 75%, 60%, 0.28)`;
+    ctx.fill();
 
-        // border
-        ctx.strokeStyle = isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.12)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+    // segment border
+    ctx.strokeStyle = isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-        // label
-        ctx.save();
-       // label (auto-fit + 2-line wrap)
-const raw = seg.label;
+    // === label (auto-fit + 2-line wrap) ===
+    ctx.save();
 
-// max width for text inside slice
-const maxTextWidth = radius * 0.34;
+    const mid = (start + end) / 2;
+    ctx.translate(cx, cy);
+    ctx.rotate(mid);
+    ctx.translate(radius * 0.58, 0);   // pull inward a bit
+    ctx.rotate(Math.PI / 2);
 
-// decide if we should wrap
-const lines = raw.length > 14 ? splitToTwoLines(raw, 12) : [raw];
+    ctx.fillStyle = isLight ? "rgba(0,0,0,0.82)" : "rgba(255,255,255,0.90)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
-// set font size based on the longest line
-const longest = lines.reduce((a,b) => (a.length > b.length ? a : b), "");
-const size = fitFontSize(ctx, longest, maxTextWidth, 14, 10, 700);
+    const raw = seg.label;
+    const maxTextWidth = radius * 0.34;
 
-ctx.font = `700 ${size}px system-ui`;
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
+    const lines = raw.length > 14 ? splitToTwoLines(raw, 12) : [raw];
+    const longest = lines.reduce((a,b) => (a.length > b.length ? a : b), "");
+    const size = fitFontSize(ctx, longest, maxTextWidth, 14, 10, 700);
 
-// draw 1 or 2 lines with vertical spacing
-if (lines.length === 1){
-  ctx.fillText(lines[0], 0, 0);
-} else {
-  const lineGap = Math.max(12, size + 2);
-  ctx.fillText(lines[0], 0, -lineGap * 0.35);
-  ctx.fillText(lines[1], 0,  lineGap * 0.35);
-}
+    ctx.font = `700 ${size}px system-ui`;
 
-     const label = seg.label.length > 18 ? seg.label.slice(0, 17) + "…" : seg.label;
-ctx.fillText(label, 0, 0);
-
-
-      // center cap
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius * 0.18, 0, Math.PI * 2);
-      ctx.fillStyle = isLight ? "rgba(17,24,39,0.9)" : "rgba(255,255,255,0.85)";
-      ctx.fill();
-
-      ctx.fillStyle = isLight ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.85)";
-      ctx.font = "800 15px system-ui";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("BIAS", cx, cy);
+    if (lines.length === 1){
+      ctx.fillText(lines[0], 0, 0);
+    } else {
+      const lineGap = Math.max(12, size + 2);
+      ctx.fillText(lines[0], 0, -lineGap * 0.35);
+      ctx.fillText(lines[1], 0,  lineGap * 0.35);
     }
+
+    ctx.restore();
+  }
+
+  // center cap (draw AFTER the loop)
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.18, 0, Math.PI * 2);
+  ctx.fillStyle = isLight ? "rgba(17,24,39,0.9)" : "rgba(255,255,255,0.85)";
+  ctx.fill();
+
+  ctx.fillStyle = isLight ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.85)";
+  ctx.font = "800 15px system-ui";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("BIAS", cx, cy);
+}
 
   function normalizeAngle(a){
   const twoPi = Math.PI * 2;
