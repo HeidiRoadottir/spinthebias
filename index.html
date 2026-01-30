@@ -1009,7 +1009,37 @@ kbd{
       for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
       return h % 360;
     }
+function splitToTwoLines(text, maxCharsFirstLine = 12){
+  // Try to split by spaces into 2 balanced-ish lines
+  const words = text.split(" ").filter(Boolean);
+  if (words.length === 1) return [text];
 
+  let line1 = "";
+  let line2 = "";
+
+  for (const w of words){
+    const test = (line1 ? line1 + " " : "") + w;
+    if (test.length <= maxCharsFirstLine) line1 = test;
+    else line2 = (line2 ? line2 + " " : "") + w;
+  }
+
+  // If line2 got too long, just keep as one line (we’ll font-fit anyway)
+  if (!line2) return [text];
+  return [line1, line2];
+}
+
+function fitFontSize(ctx, text, maxWidth, startSize = 14, minSize = 10, weight = 700){
+  // Shrink font until it fits within maxWidth
+  let size = startSize;
+  while (size > minSize){
+    ctx.font = `${weight} ${size}px system-ui`;
+    if (ctx.measureText(text).width <= maxWidth) return size;
+    size -= 1;
+  }
+  return minSize;
+}
+
+    
     // ===== Wheel drawing =====
     function drawWheel(){
       const cx = canvas.width / 2;
@@ -1065,21 +1095,35 @@ kbd{
 
         // label
         ctx.save();
-        const mid = (start + end) / 2;
-        ctx.translate(cx, cy);
-        ctx.rotate(mid);
-        ctx.translate(radius * 0.62, 0);
-        ctx.rotate(Math.PI / 2);
+       // label (auto-fit + 2-line wrap)
+const raw = seg.label;
 
-        ctx.fillStyle = isLight ? "rgba(0,0,0,0.82)" : "rgba(255,255,255,0.90)";
-        ctx.font = "700 14px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+// max width for text inside slice
+const maxTextWidth = radius * 0.34;
 
-        const label = seg.label.length > 18 ? seg.label.slice(0, 17) + "…" : seg.label;
-        ctx.fillText(label, 0, 0);
-        ctx.restore();
-      }
+// decide if we should wrap
+const lines = raw.length > 14 ? splitToTwoLines(raw, 12) : [raw];
+
+// set font size based on the longest line
+const longest = lines.reduce((a,b) => (a.length > b.length ? a : b), "");
+const size = fitFontSize(ctx, longest, maxTextWidth, 14, 10, 700);
+
+ctx.font = `700 ${size}px system-ui`;
+ctx.textAlign = "center";
+ctx.textBaseline = "middle";
+
+// draw 1 or 2 lines with vertical spacing
+if (lines.length === 1){
+  ctx.fillText(lines[0], 0, 0);
+} else {
+  const lineGap = Math.max(12, size + 2);
+  ctx.fillText(lines[0], 0, -lineGap * 0.35);
+  ctx.fillText(lines[1], 0,  lineGap * 0.35);
+}
+
+     const label = seg.label.length > 18 ? seg.label.slice(0, 17) + "…" : seg.label;
+ctx.fillText(label, 0, 0);
+
 
       // center cap
       ctx.beginPath();
@@ -1094,16 +1138,45 @@ kbd{
       ctx.fillText("BIAS", cx, cy);
     }
 
-    function getSelectedIndex(){
-      const n = segments.length;
-      const arc = (Math.PI * 2) / n;
+  function normalizeAngle(a){
+  const twoPi = Math.PI * 2;
+  return ((a % twoPi) + twoPi) % twoPi;
+}
 
-      // pointer at top: reference = -pi/2
-      const normalized = (-(angle) + Math.PI / 2) % (Math.PI * 2);
-      const a = (normalized + Math.PI * 2) % (Math.PI * 2);
-      const idx = Math.floor(a / arc);
-      return clamp(idx, 0, n - 1);
+function shortestAngleDiff(a, b){
+  // returns smallest signed difference a-b in range [-pi, pi]
+  const twoPi = Math.PI * 2;
+  let d = normalizeAngle(a) - normalizeAngle(b);
+  if (d > Math.PI) d -= twoPi;
+  if (d < -Math.PI) d += twoPi;
+  return d;
+}
+
+function getSelectedIndex(){
+  const n = segments.length;
+  const arc = (Math.PI * 2) / n;
+
+  // Pointer is at the top of the circle
+  const pointerAngle = -Math.PI / 2;
+
+  let bestIdx = 0;
+  let bestAbs = Infinity;
+
+  for (let i = 0; i < n; i++){
+    // Mid-angle of each segment (matches how you draw it)
+    const mid = angle + (i + 0.5) * arc;
+
+    const diff = shortestAngleDiff(pointerAngle, mid);
+    const abs = Math.abs(diff);
+
+    if (abs < bestAbs){
+      bestAbs = abs;
+      bestIdx = i;
     }
+  }
+  return bestIdx;
+}
+
 
     // ===== Outcome rendering =====
     function renderOutcome(seg){
