@@ -488,6 +488,51 @@
   backdrop-filter: blur(2px);
 }
 
+    /* ===== Improve modal visibility in DARK mode ===== */
+.modal-backdrop{
+  background: rgba(0,0,0,0.65);   /* darker overlay */
+  backdrop-filter: blur(3px);
+}
+
+/* Make modal pop more in dark mode */
+.modal{
+  background: linear-gradient(
+    180deg,
+    rgba(25,25,30,0.98),
+    rgba(15,15,20,0.98)
+  );
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 40px 120px rgba(0,0,0,0.85);
+}
+
+/* Header/footer borders clearer */
+.modal-header,
+.modal-footer{
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* Blocks inside modal */
+.modal-block{
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.14);
+}
+
+/* Title chip stronger */
+.modal-title .chip{
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.85);
+}
+
+/* Close button more visible */
+.modal-close{
+  border-color: rgba(255,255,255,0.25);
+}
+.modal-close:hover{
+  background: rgba(255,255,255,0.12);
+}
+
+
 :root.light .modal{
   background: #ffffff;                /* solid modal background */
   border-color: rgba(0,0,0,.12);
