@@ -482,7 +482,33 @@
   box-shadow: 0 30px 90px rgba(0,0,0,.45);
   overflow: hidden;
 }
+/* Make the welcome popup clearly visible in LIGHT mode */
+:root.light .modal-backdrop{
+  background: rgba(17, 24, 39, 0.35); /* darker overlay in light mode */
+  backdrop-filter: blur(2px);
+}
 
+:root.light .modal{
+  background: #ffffff;                /* solid modal background */
+  border-color: rgba(0,0,0,.12);
+  box-shadow: 0 30px 90px rgba(0,0,0,.22);
+}
+
+:root.light .modal-header{
+  border-bottom-color: rgba(0,0,0,.10);
+}
+
+:root.light .modal-footer{
+  border-top-color: rgba(0,0,0,.10);
+}
+
+/* Optional: make blocks inside the modal more card-like */
+:root.light .modal-block{
+  background: rgba(0,0,0,.03);
+  border-color: rgba(0,0,0,.10);
+}
+
+    
 .modal-header{
   padding: 16px 18px;
   display:flex;
