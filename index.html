@@ -1030,54 +1030,59 @@ function stopGeneratingUI(){
 
     // ===== Spin logic =====
     function spinOnce(){
-      if (isSpinning || !segments.length) return;
-      isSpinning = true;
-      startGeneratingUI(); 
-      spinBtn.disabled = true;
-      spinAgainBtn.disabled = true;
-      copyBtn.disabled = true;
+  if (isSpinning || !segments.length) return;
+  isSpinning = true;
 
-      const extraSpins = reducedMotion ? 1 : 6;
-      const rand = Math.random();
-      const target = angle + (Math.PI * 2) * extraSpins + rand * Math.PI * 2;
+  spinBtn.disabled = true;
+  spinAgainBtn.disabled = true;
+  copyBtn.disabled = true;
 
-      if (reducedMotion){
-        angle = target;
-        drawWheel();
-        finalizeSpin();
-        return;
-      }
+  // Show "generating" UI while spinning (if you added it)
+  if (typeof startGeneratingUI === "function") startGeneratingUI();
 
-      const start = performance.now();
-      const duration = 2600;
+  const extraSpins = reducedMotion ? 1 : 7; // bump this for more drama
+  const rand = Math.random();
+  const target = angle + (Math.PI * 2) * extraSpins + rand * Math.PI * 2;
 
-      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+  if (reducedMotion){
+    angle = target;
+    drawWheel();
+    finalizeSpin();
+    return;
+  }
 
-      let lastTick = 0;
+  const start = performance.now();
+  const duration = 2800;              // longer = more satisfying slow-down
+  const startAngle = angle;           // IMPORTANT: freeze start angle
 
-      function frame(now){
-        const t = clamp((now - start) / duration, 0, 1);
-        const eased = easeOutCubic(t);
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
-        // Smoothly approach target without overshooting
-        angle = angle + (target - angle) * eased;
-        drawWheel();
+  let lastTick = 0;
 
-        // tick sound every ~80ms early on
-        if (soundToggle.checked && now - lastTick > 80 && t < 0.9){
-          spinSoundTick();
-          lastTick = now;
-        }
+  function frame(now){
+    const t = clamp((now - start) / duration, 0, 1);
+    const eased = easeOutCubic(t);
 
-        if (t < 1) requestAnimationFrame(frame);
-        else {
-          angle = target;
-          drawWheel();
-          finalizeSpin();
-        }
-      }
-      requestAnimationFrame(frame);
+    // ✅ Smooth fast→slow interpolation
+    angle = startAngle + (target - startAngle) * eased;
+    drawWheel();
+
+    // Optional: tick sound that slows down naturally
+    if (soundToggle?.checked && now - lastTick > (40 + t * 180) && t < 0.98){
+      if (typeof spinSoundTick === "function") spinSoundTick();
+      lastTick = now;
     }
+
+    if (t < 1) requestAnimationFrame(frame);
+    else {
+      angle = target;
+      drawWheel();
+      finalizeSpin();
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
 
     function finalizeSpin(){
       stopGeneratingUI();
