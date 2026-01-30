@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spin the Bias</title>
+  <meta name="description" content="A playful wheel-of-fortune style interactive about systemic bias in healthcare." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🎡</div>
+      <div>
+        <h1>Spin the Bias</h1>
+        <p class="subtitle">A cheerful wheel that lands on uncomfortable truths.</p>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <button id="resetBtn" class="btn btn-ghost" type="button">Reset</button>
+      <a class="btn btn-ghost" href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="wheel-card" aria-label="Wheel">
+      <div class="wheel-wrap">
+        <div class="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" width="560" height="560" aria-label="Spin wheel"></canvas>
+      </div>
+
+      <div class="controls">
+        <button id="spinBtn" class="btn btn-primary" type="button">
+          <span class="btn-icon" aria-hidden="true">🎉</span>
+          <span>SPIN THE BIAS</span>
+        </button>
+        <div class="hint" id="hint">
+          Tip: Spin multiple times to see how “random” becomes systemic.
+        </div>
+      </div>
+
+      <div class="stats" aria-label="Scoreboard">
+        <div class="stat">
+          <div class="stat-label">Spins</div>
+          <div class="stat-value" id="spins">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">System damage</div>
+          <div class="stat-value" id="damage">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Trust meter</div>
+          <div class="stat-value" id="trust">100%</div>
+        </div>
+      </div>
+
+      <div class="toggles">
+        <label class="toggle">
+          <input id="reducedMotionToggle" type="checkbox" />
+          <span>Reduced motion</span>
+        </label>
+        <label class="toggle">
+          <input id="darkToggle" type="checkbox" />
+          <span>Dark mode</span>
+        </label>
+      </div>
+    </section>
+
+    <section class="result-card" aria-label="Outcome">
+      <div class="result-header">
+        <h2 id="resultTitle">Outcome</h2>
+        <p class="result-subtitle" id="resultSubtitle">Spin the wheel to generate a scenario.</p>
+      </div>
+
+      <div class="result-body" id="resultBody">
+        <div class="empty-state">
+          <div class="empty-emoji" aria-hidden="true">🌀</div>
+          <p>
+            Click <strong>SPIN THE BIAS</strong> to land on a category and see how bias shows up in systems,
+            data, and decisions.
+          </p>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <button id="spinAgainBtn" class="btn btn-secondary" type="button" disabled>
+          Spin again
+        </button>
+        <button id="copyBtn" class="btn btn-ghost" type="button" disabled>
+          Copy outcome
+        </button>
+      </div>
+
+      <footer class="footer-note">
+        <small>
+          Tone: playful. Topic: serious. This is a prototype meant to spark reflection.
+        </small>
+      </footer>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+
