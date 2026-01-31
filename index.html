@@ -648,6 +648,29 @@
   user-select:none;
 }
 
+/* --- Mobile-safe modal clicking --- */
+.modal-backdrop{
+  pointer-events: auto;
+}
+
+.modal{
+  position: relative;
+  pointer-events: auto;
+  z-index: 100000;
+}
+
+.modal *{
+  pointer-events: auto;
+}
+
+/* iOS tap reliability */
+.modal-close,
+#welcomeSpinBtn,
+#welcomeCloseBtn{
+  touch-action: manipulation;
+}
+
+    
 kbd{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
   font-size: 12px;
@@ -1650,9 +1673,15 @@ function closeWelcomeModal(){
 welcomeCloseX.addEventListener("click", closeWelcomeModal);
 welcomeCloseBtn.addEventListener("click", closeWelcomeModal);
 
-// Click outside modal closes
+// Click outside modal closes (mobile-safe)
 welcomeBackdrop.addEventListener("click", (e) => {
+  // Only close if the user actually clicked the backdrop itself
   if (e.target === welcomeBackdrop) closeWelcomeModal();
+});
+
+// Prevent clicks inside the modal from bubbling to backdrop
+document.querySelector(".modal").addEventListener("click", (e) => {
+  e.stopPropagation();
 });
 
 // ESC closes
