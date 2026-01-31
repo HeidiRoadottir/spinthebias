@@ -1631,7 +1631,6 @@ function stopGeneratingUI(){
     spinAgainBtn.addEventListener("click", spinOnce);
     copyBtn.addEventListener("click", copyOutcome);
     resetBtn.addEventListener("click", resetAll);
-    aboutBtn.addEventListener("click", showAbout);
 
     // Keyboard spin shortcut
     document.addEventListener("keydown", (e) => {
@@ -1643,22 +1642,26 @@ function stopGeneratingUI(){
         }
       }
     });
-// ===== Welcome Modal =====
+    
+// ===== Welcome Modal (mobile-safe, no double binding) =====
 const welcomeBackdrop = document.getElementById("welcomeBackdrop");
+const modalEl = welcomeBackdrop.querySelector(".modal");
+
 const welcomeCloseX = document.getElementById("welcomeCloseX");
 const welcomeCloseBtn = document.getElementById("welcomeCloseBtn");
 const welcomeSpinBtn = document.getElementById("welcomeSpinBtn");
 const dontShowAgain = document.getElementById("dontShowAgain");
 
 function openWelcomeModal(force = false){
-  // If user chose "don't show again", only open when forced (About button)
   const suppressed = localStorage.getItem("stb_hide_welcome") === "1";
   if (suppressed && !force) return;
 
   welcomeBackdrop.classList.add("open");
 
-  // Basic focus to close button for accessibility
-  setTimeout(() => welcomeCloseX.focus(), 0);
+  // iOS sometimes hates forced focus; only do it on larger screens
+  if (window.matchMedia("(min-width: 720px)").matches) {
+    setTimeout(() => welcomeCloseX.focus(), 0);
+  }
 }
 
 function closeWelcomeModal(){
@@ -1669,38 +1672,50 @@ function closeWelcomeModal(){
   }
 }
 
-// Close actions
-welcomeCloseX.addEventListener("click", closeWelcomeModal);
-welcomeCloseBtn.addEventListener("click", closeWelcomeModal);
-
-// Click outside modal closes (mobile-safe)
-welcomeBackdrop.addEventListener("click", (e) => {
-  // Only close if the user actually clicked the backdrop itself
-  if (e.target === welcomeBackdrop) closeWelcomeModal();
+// Stop taps inside modal from closing it
+["click","pointerdown","pointerup","touchstart"].forEach(evt => {
+  modalEl.addEventListener(evt, (e) => e.stopPropagation(), { passive: true });
 });
 
-// Prevent clicks inside the modal from bubbling to backdrop
-document.querySelector(".modal").addEventListener("click", (e) => {
-  e.stopPropagation();
+// Close when tapping backdrop only
+["pointerup","click"].forEach(evt => {
+  welcomeBackdrop.addEventListener(evt, (e) => {
+    if (e.target === welcomeBackdrop) closeWelcomeModal();
+  });
 });
 
-// ESC closes
+// Close buttons (use pointerup for mobile reliability)
+["pointerup","click"].forEach(evt => {
+  welcomeCloseX.addEventListener(evt, (e) => {
+    e.preventDefault();
+    closeWelcomeModal();
+  }, { passive: false });
+
+  welcomeCloseBtn.addEventListener(evt, (e) => {
+    e.preventDefault();
+    closeWelcomeModal();
+  }, { passive: false });
+
+  welcomeSpinBtn.addEventListener(evt, (e) => {
+    e.preventDefault();
+    closeWelcomeModal();
+    setTimeout(() => spinOnce(), 60);
+  }, { passive: false });
+});
+
+// ESC closes (desktop)
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && welcomeBackdrop.classList.contains("open")) {
     closeWelcomeModal();
   }
 });
 
-// Spin button in modal closes and spins
-welcomeSpinBtn.addEventListener("click", () => {
-  closeWelcomeModal();
-  // tiny delay so UI updates feel clean
-  setTimeout(() => spinOnce(), 80);
+// About opens the modal (ONLY)
+aboutBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  openWelcomeModal(true);
 });
 
-// Hook About button to open modal
-aboutBtn.addEventListener("click", () => openWelcomeModal(true));
-    
 // Show on first load (unless suppressed)
 window.addEventListener("load", () => {
   openWelcomeModal(false);
