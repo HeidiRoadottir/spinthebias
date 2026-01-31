@@ -460,32 +460,79 @@
 :root.light .gen-log{
   background: rgba(0,0,0,.02);
 }
-/* === Modal (welcome popup) === */
+/* === Modal (welcome popup) — mobile reliable === */
 .modal-backdrop{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
-  display: none;
+  display: flex;                 /* always in layout */
   align-items: center;
   justify-content: center;
   padding: 18px;
   z-index: 99999;
+
+  /* hidden by default (instead of display:none) */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(3px);
+
+  transition: opacity .18s ease, visibility .18s ease;
 }
 
-.modal-backdrop.open{ display: flex; }
+.modal-backdrop.open{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 
 .modal{
   width: min(720px, 96vw);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+
   border-radius: 22px;
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--card), var(--card-2));
-  box-shadow: 0 30px 90px rgba(0,0,0,.45);
-  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.18);
+
+  background: linear-gradient(
+    180deg,
+    rgba(25,25,30,0.98),
+    rgba(15,15,20,0.98)
+  );
+  box-shadow: 0 40px 120px rgba(0,0,0,0.85);
+
+  /* iOS tap/scroll reliability */
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
 }
-/* Make the welcome popup clearly visible in LIGHT mode */
+
+/* Light mode */
 :root.light .modal-backdrop{
-  background: rgba(17, 24, 39, 0.35); /* darker overlay in light mode */
+  background: rgba(17, 24, 39, 0.35);
   backdrop-filter: blur(2px);
+}
+:root.light .modal{
+  background: #ffffff;
+  border-color: rgba(0,0,0,.12);
+  box-shadow: 0 30px 90px rgba(0,0,0,.22);
+}
+
+/* Make buttons reliably tappable */
+.modal-close,
+#welcomeSpinBtn,
+#welcomeCloseBtn{
+  touch-action: manipulation;
+}
+
+/* Header/footer clarity */
+.modal-header,
+.modal-footer{
+  border-color: rgba(255,255,255,0.12);
+}
+:root.light .modal-header,
+:root.light .modal-footer{
+  border-color: rgba(0,0,0,0.10);
 }
 
     /* ===== Improve modal visibility in DARK mode ===== */
@@ -1643,83 +1690,93 @@ function stopGeneratingUI(){
       }
     });
     
-// ===== Welcome Modal (mobile-safe, no double binding) =====
-const welcomeBackdrop = document.getElementById("welcomeBackdrop");
-const modalEl = welcomeBackdrop.querySelector(".modal");
+// ===== Welcome Modal (ultra reliable mobile version) =====
+(() => {
+  const welcomeBackdrop = document.getElementById("welcomeBackdrop");
+  const modalEl = welcomeBackdrop?.querySelector(".modal");
 
-const welcomeCloseX = document.getElementById("welcomeCloseX");
-const welcomeCloseBtn = document.getElementById("welcomeCloseBtn");
-const welcomeSpinBtn = document.getElementById("welcomeSpinBtn");
-const dontShowAgain = document.getElementById("dontShowAgain");
+  const welcomeCloseX = document.getElementById("welcomeCloseX");
+  const welcomeCloseBtn = document.getElementById("welcomeCloseBtn");
+  const welcomeSpinBtn = document.getElementById("welcomeSpinBtn");
+  const dontShowAgain = document.getElementById("dontShowAgain");
 
-function openWelcomeModal(force = false){
-  const suppressed = localStorage.getItem("stb_hide_welcome") === "1";
-  if (suppressed && !force) return;
+  if (!welcomeBackdrop || !modalEl || !welcomeCloseX || !welcomeCloseBtn || !welcomeSpinBtn) return;
 
-  welcomeBackdrop.classList.add("open");
+  // Guard: prevent double-binding if script runs twice
+  if (welcomeBackdrop.dataset.bound === "1") return;
+  welcomeBackdrop.dataset.bound = "1";
 
-  // iOS sometimes hates forced focus; only do it on larger screens
-  if (window.matchMedia("(min-width: 720px)").matches) {
-    setTimeout(() => welcomeCloseX.focus(), 0);
+  function openWelcomeModal(force = false){
+    const suppressed = localStorage.getItem("stb_hide_welcome") === "1";
+    if (suppressed && !force) return;
+    welcomeBackdrop.classList.add("open");
   }
-}
 
-function closeWelcomeModal(){
-  welcomeBackdrop.classList.remove("open");
-
-  if (dontShowAgain.checked){
-    localStorage.setItem("stb_hide_welcome", "1");
+  function closeWelcomeModal(){
+    welcomeBackdrop.classList.remove("open");
+    if (dontShowAgain && dontShowAgain.checked){
+      localStorage.setItem("stb_hide_welcome", "1");
+    }
   }
-}
 
-// Stop taps inside modal from closing it
-["click","pointerdown","pointerup","touchstart"].forEach(evt => {
-  modalEl.addEventListener(evt, (e) => e.stopPropagation(), { passive: true });
-});
+  // 1) Prevent taps inside modal from closing it
+  const stop = (e) => { e.stopPropagation(); };
+  ["touchstart","touchend","pointerdown","pointerup","click"].forEach(evt => {
+    modalEl.addEventListener(evt, stop, { passive: true });
+  });
 
-// Close when tapping backdrop only
-["pointerup","click"].forEach(evt => {
-  welcomeBackdrop.addEventListener(evt, (e) => {
+  // 2) Tap backdrop closes (touchstart is most reliable on iOS)
+  welcomeBackdrop.addEventListener("touchstart", (e) => {
+    if (e.target === welcomeBackdrop) {
+      e.preventDefault();
+      closeWelcomeModal();
+    }
+  }, { passive: false });
+
+  welcomeBackdrop.addEventListener("click", (e) => {
     if (e.target === welcomeBackdrop) closeWelcomeModal();
   });
-});
 
-// Close buttons (use pointerup for mobile reliability)
-["pointerup","click"].forEach(evt => {
-  welcomeCloseX.addEventListener(evt, (e) => {
-    e.preventDefault();
-    closeWelcomeModal();
-  }, { passive: false });
+  // 3) Buttons: use touchstart + click fallback
+  function bindClose(el, action){
+    el.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      action();
+    }, { passive: false });
 
-  welcomeCloseBtn.addEventListener(evt, (e) => {
-    e.preventDefault();
-    closeWelcomeModal();
-  }, { passive: false });
+    el.addEventListener("click", (e) => {
+      e.preventDefault();
+      action();
+    });
+  }
 
-  welcomeSpinBtn.addEventListener(evt, (e) => {
-    e.preventDefault();
+  bindClose(welcomeCloseX, closeWelcomeModal);
+  bindClose(welcomeCloseBtn, closeWelcomeModal);
+
+  bindClose(welcomeSpinBtn, () => {
     closeWelcomeModal();
     setTimeout(() => spinOnce(), 60);
-  }, { passive: false });
-});
+  });
 
-// ESC closes (desktop)
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && welcomeBackdrop.classList.contains("open")) {
-    closeWelcomeModal();
-  }
-});
+  // 4) ESC closes (desktop)
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && welcomeBackdrop.classList.contains("open")) {
+      closeWelcomeModal();
+    }
+  });
 
-// About opens the modal (ONLY)
-aboutBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  openWelcomeModal(true);
-});
+  // 5) About button: ONLY opens modal
+  // IMPORTANT: remove any other aboutBtn listeners like showAbout()
+  aboutBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    openWelcomeModal(true);
+  });
 
-// Show on first load (unless suppressed)
-window.addEventListener("load", () => {
-  openWelcomeModal(false);
-});
+  // 6) Show on first load (unless suppressed)
+  window.addEventListener("load", () => {
+    openWelcomeModal(false);
+  });
+})();
 
     // ===== Init =====
     angle = Math.random() * Math.PI * 2;
