@@ -658,6 +658,99 @@ kbd{
 }
 :root.light kbd{ background: rgba(0,0,0,.03); }
 
+/* ========= Mobile polish ========= */
+@media (max-width: 560px){
+
+  /* Give the page a bit more breathing room */
+  main{
+    padding: 0 14px 54px;
+  }
+
+  /* Make navbar links easier to tap */
+  .nav-links a{
+    padding: 8px 12px;
+  }
+
+  /* Reduce hero padding slightly */
+  header{
+    padding: 28px 0 22px;
+  }
+
+  /* Make hero photo not dominate */
+  .hero-photo{
+    padding: 14px;
+  }
+  .hero-photo img{
+    max-width: 220px;
+  }
+
+  /* Filters: allow horizontal scroll instead of wrapping into chaos */
+  .projects-filters{
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+  .projects-filters::-webkit-scrollbar{
+    height: 6px;
+  }
+  .projects-filters::-webkit-scrollbar-thumb{
+    background: #e5e7eb;
+    border-radius: 999px;
+  }
+
+  /* Keep pills readable and tappable */
+  .pill{
+    padding: 8px 12px;
+    font-size: 0.82rem;
+  }
+
+  /* Force single column cards */
+  .projects-grid{
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  /* Make card media a bit shorter for phones */
+  .project-media img{
+    height: 160px;
+  }
+
+  /* Slightly larger text + spacing in cards */
+  .project{
+    padding: 15px;
+  }
+  .project h3{
+    font-size: 1.02rem;
+    line-height: 1.25;
+  }
+  .project-meta{
+    font-size: 0.9rem;
+  }
+  .project p{
+    font-size: 0.95rem;
+  }
+
+  /* Make 'View project' button easier to tap */
+  .read-more{
+    padding: 9px 12px;
+    font-size: 0.92rem;
+  }
+
+  /* Prevent tag pills from looking cramped */
+  .pill-small{
+    font-size: 0.78rem;
+    padding: 4px 10px;
+  }
+
+  /* See more buttons: better tap target */
+  .btn-see-more{
+    padding: 10px 16px;
+    width: 100%;
+  }
+}
+
+    
   </style>
 </head>
 <body> 
